@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="PhyVGGT: Feed-Forward Articulated Object Reconstruction from Monocular Videos">
 <title>PhyVGGT</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF8000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20V8l8-4 8 4v12'/%3E%3Cpath d='M12 4v16'/%3E%3Cpath d='M12 11l6 3'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF5D06' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20V8l8-4 8 4v12'/%3E%3Cpath d='M12 4v16'/%3E%3Cpath d='M12 11l6 3'/%3E%3C/svg%3E">
 <meta property="og:type" content="website">
 <meta property="og:title" content="PhyVGGT">
 <meta property="og:description" content="Feed-Forward Articulated Object Reconstruction from Monocular Videos">
@@ -18,7 +18,7 @@
 :root{
   --ink:#141413;
   --ivory:#FFFFFF;
-  --oat:#FFEBD6;
+  --oat:#FFE4D6;
   --teal:#218375;
   --slate:#3A3E44;
   --mid:#7A7E85;
@@ -26,10 +26,10 @@
   --sunken:#F6F7F9;
   --warm-line:#E6E8EC;
   --line:rgba(31,30,29,.10);
-  --brand:#E06A00;
-  --brand-hover:#C25A00;
-  --coral:#FF8000;
-  --tint:rgba(255,128,0,.10);
+  --brand:#E04E0B;
+  --brand-hover:#B83E08;
+  --coral:#FF5D06;
+  --tint:rgba(255,93,6,.10);
   --serif:"Google Sans","Noto Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   --body:"Noto Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
@@ -66,8 +66,8 @@ button{font:inherit;color:inherit}
 .btn:hover{transform:translateY(-2px);box-shadow:0 12px 22px -10px var(--glow),0 2px 4px rgba(0,0,0,.06);background:#26292E}
 .btn:hover svg{transform:scale(1.1)}
 .btn:active{transform:translateY(0) scale(.97)}
-.btn-primary{--glow:rgba(255,128,0,.45);background:var(--coral)}
-.btn-primary:hover{background:#E67300}
+.btn-primary{--glow:rgba(255,93,6,.45);background:var(--coral)}
+.btn-primary:hover{background:#E04E0B}
 .btn-arxiv{--glow:rgba(179,27,27,.45);background:#B31B1B;border-color:#B31B1B;color:#fff}.btn-arxiv svg{fill:#fff}.btn-arxiv:hover{background:#8F1515;border-color:#8F1515;color:#fff}
 .btn[aria-disabled="true"]{cursor:default;opacity:.88}
 .btn[aria-disabled="true"]::after,.btn[aria-disabled="true"]::before{position:absolute;left:50%;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease}
@@ -82,7 +82,7 @@ button{font:inherit;color:inherit}
 .chip{padding:.48rem 1.05rem;border:1px solid var(--warm-line);border-radius:8px;background:#fff;font-size:.96rem;cursor:pointer;transition:all .2s ease}
 .chip:active{transform:scale(.97)}
 .chip:hover{border-color:var(--coral);color:var(--brand)}
-.chip[aria-pressed="true"]{border-color:rgba(255,128,0,.45);background:var(--oat);color:var(--brand-hover);font-weight:500}
+.chip[aria-pressed="true"]{border-color:rgba(255,93,6,.45);background:var(--oat);color:var(--brand-hover);font-weight:500}
 
 /* Sections */
 .section{padding:2.5rem 0}
