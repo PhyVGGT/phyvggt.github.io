@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="PhyVGGT: Feed-Forward Articulated Object Reconstruction from Monocular Videos">
+<title>PhyVGGT</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23E87A26' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20V8l8-4 8 4v12'/%3E%3Cpath d='M12 4v16'/%3E%3Cpath d='M12 11l6 3'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PhyVGGT">
+<meta property="og:description" content="Feed-Forward Articulated Object Reconstruction from Monocular Videos">
+<meta property="og:image" content="assets/teaser.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans:wght@400;500;700&display=swap">
+<style>
+:root{
+  --ink:#141413;
+  --ivory:#FFFFFF;
+  --oat:#FDEBDD;
+  --teal:#218375;
+  --slate:#3A3E44;
+  --mid:#7A7E85;
+  --panel:#F3F3F3;
+  --sunken:#F6F7F9;
+  --warm-line:#E6E8EC;
+  --line:rgba(31,30,29,.10);
+  --brand:#C25E17;
+  --brand-hover:#9C4710;
+  --coral:#E87A26;
+  --tint:rgba(232,122,38,.10);
+  --serif:"Google Sans","Noto Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --body:"Noto Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --r-lg:16px; --r-md:12px;
+  --card-shadow:0 1px 2px rgba(31,30,29,.04),0 10px 28px -16px rgba(31,30,29,.16);
+  --card-shadow-hi:0 2px 4px rgba(31,30,29,.05),0 18px 36px -18px rgba(31,30,29,.24);
+  --frost:rgba(255,255,255,.88);
+  --paper:#FFFFFF;
+  --sheet-shadow:0 1px 1px rgba(30,34,42,.05),0 2px 6px -2px rgba(30,34,42,.08),0 14px 30px -20px rgba(30,34,42,.22);
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360'%3E%3Cfilter id='p' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.045' numOctaves='5' stitchTiles='stitch' result='n'/%3E%3CfeDiffuseLighting in='n' lighting-color='%23fff' surfaceScale='1.6'%3E%3CfeDistantLight azimuth='45' elevation='64'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px;overflow-x:hidden}
+body{margin:0;overflow-x:hidden;background-color:#fff;color:var(--ink);font-family:var(--body);font-size:1rem;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,figure{margin:0}
+img,video{display:block;max-width:100%}
+a{color:inherit}
+button{font:inherit;color:inherit}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+
+.container{width:100%;max-width:1050px;margin-inline:auto;padding-inline:1.5rem}
+
+/* Header */
+.hero{padding:5.2rem 0 2.3rem;text-align:center}
+.title{max-width:62rem;margin:0 auto;font-family:var(--serif);font-size:clamp(1.55rem,3.2vw,2.4rem);font-weight:500;line-height:1.22;letter-spacing:-.02em;text-wrap:balance}
+.wordmark{font-weight:700;color:var(--brand)}
+.subtitle-tag{margin-top:1.1rem;font-size:1.05rem;color:#4A4E57}
+.venue{margin-top:.8rem;font-family:var(--serif);font-size:1.12rem;font-weight:600;color:var(--brand)}
+.links{display:flex;flex-wrap:wrap;justify-content:center;gap:.55rem;margin-top:1.5rem}
+
+.btn{--glow:rgba(30,34,40,.42);position:relative;display:inline-flex;align-items:center;gap:.5em;height:2.6rem;padding-inline:1rem;border:0;border-radius:10px;background:var(--slate);color:#fff;font-size:1.02rem;font-weight:500;white-space:nowrap;text-decoration:none;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.08);transition:transform .2s ease,box-shadow .2s ease,background .2s ease}
+.btn svg{width:18px;height:18px;flex:none;fill:currentColor;transition:transform .2s ease}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 22px -10px var(--glow),0 2px 4px rgba(0,0,0,.06);background:#26292E}
+.btn:hover svg{transform:scale(1.1)}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn-primary{--glow:rgba(232,122,38,.45);background:var(--coral)}
+.btn-primary:hover{background:#D06817}
+.btn[aria-disabled="true"]{cursor:default;opacity:.88}
+.btn[aria-disabled="true"]::after,.btn[aria-disabled="true"]::before{position:absolute;left:50%;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+.btn[aria-disabled="true"]::after{content:"Coming soon";top:calc(100% + .7rem);padding:.35rem .7rem;border-radius:.5rem;background:var(--ink);color:var(--ivory);font-size:.75rem;white-space:nowrap;transform:translate(-50%,-4px);z-index:5}
+.btn[aria-disabled="true"]::before{content:"";top:calc(100% + .7rem - 4px);width:8px;height:8px;background:var(--ink);transform:translate(-50%,-4px) rotate(45deg);z-index:5}
+.btn[aria-disabled="true"]:hover::after{opacity:1;transform:translate(-50%,0)}
+.btn[aria-disabled="true"]:hover::before{opacity:1;transform:translate(-50%,0) rotate(45deg)}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:.65rem 1.8rem;margin-bottom:1.35rem}
+.chip-group{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.55rem}
+.chip{padding:.48rem 1.05rem;border:1px solid var(--warm-line);border-radius:8px;background:#fff;font-size:.96rem;cursor:pointer;transition:all .2s ease}
+.chip:active{transform:scale(.97)}
+.chip:hover{border-color:var(--coral);color:var(--brand)}
+.chip[aria-pressed="true"]{border-color:rgba(232,122,38,.45);background:var(--oat);color:var(--brand-hover);font-weight:500}
+
+/* Sections */
+.section{padding:2.5rem 0}
+.section h2{margin-bottom:1.25rem;font-family:var(--serif);font-size:1.875rem;font-weight:700;letter-spacing:-.012em;line-height:1.25;text-align:center}
+.section p.text{font-size:1rem;line-height:1.8;text-align:left}
+
+/* Table */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+th,td{padding:.58rem .72rem;text-align:center;border-bottom:1px solid var(--warm-line);transition:background .15s ease}
+th:first-child,td:first-child{text-align:left}
+thead th{font-family:var(--serif);font-weight:700;border-bottom:2px solid #DBDBDB}
+tbody tr:last-child td{border-bottom:0}
+th.grp,td.grp{border-left:1px solid var(--warm-line)}
+tbody tr.ours td{background:var(--oat);font-weight:700}
+tbody tr.ours td:first-child span{color:var(--brand)}
+tbody tr.sec-row td{background:var(--sunken);font-style:italic;font-weight:500;color:#4A4E57;padding-block:.38rem}
+td.b{font-weight:700;color:var(--brand)}
+.table-note{margin-top:.85rem;font-size:.88rem;line-height:1.6;text-align:left;color:#3A3D44}
+
+/* Figure */
+.figure{padding:1.2rem;border:1px solid var(--warm-line);border-radius:var(--r-lg);background:#fff;box-shadow:var(--sheet-shadow)}
+.figure .slot{position:relative}
+.figure .slot img{display:block;width:100%;height:auto}
+.figure.narrow .slot img{max-width:560px;margin-inline:auto}
+.figure-caption{margin-top:.85rem;font-size:.9rem;line-height:1.6;text-align:left;color:#3A3D44}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:2.4rem;align-items:center}
+.split h2{text-align:left!important}
+.split .figure{padding:1rem}
+@media (max-width:860px){.split{grid-template-columns:1fr}}
+
+.lead{font-size:1.02rem;line-height:1.7;text-align:left}
+.steps{margin:1.3rem 0 0;padding:0;list-style:none;counter-reset:st;display:grid;gap:.95rem}
+.steps li{position:relative;padding-left:2.55rem;counter-increment:st}
+.steps li::before{content:counter(st);position:absolute;left:0;top:.05rem;display:grid;place-items:center;width:1.8rem;height:1.8rem;border-radius:8px;background:var(--oat);color:var(--brand);font-family:var(--serif);font-weight:700}
+.steps b{display:block;font-family:var(--serif);font-size:1.02rem}
+.steps span{display:block;font-size:.94rem;line-height:1.6;color:#33363D}
+
+/* Overview Highlight Card */
+.stats{max-width:1020px;margin:0 auto;padding:1.45rem 1.6rem;border:1px solid var(--warm-line);border-radius:var(--r-lg);background:#fff;box-shadow:var(--sheet-shadow)}
+.stats.hl-wrap{max-width:none;display:grid;grid-template-columns:15.2rem minmax(0,1fr) 15.6rem;gap:1.45rem}
+.hl-mid{padding:0 1.25rem;border-left:1px solid var(--warm-line);border-right:1px solid var(--warm-line)}
+.hl-title{margin-bottom:.95rem;font-family:var(--serif);font-size:1.02rem;font-weight:700;text-align:center}
+.hl-grid{display:grid;grid-template-columns:1fr;gap:1.35rem}
+.hl-name{display:flex;align-items:center;flex-wrap:wrap;margin-bottom:.5rem;font-family:var(--serif);font-size:.94rem;font-weight:700}
+.hl-name span{flex-basis:100%;margin:.12rem 0 0 1.5rem;font-family:var(--body);font-size:.79rem;font-weight:400;color:#555962}
+.hl-head{width:1.05rem;height:1.05rem;margin-right:.45rem;fill:none;stroke:var(--brand);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hl-row{display:grid;grid-template-columns:10.2rem minmax(0,1fr) 3.4rem;align-items:center;gap:.55rem;height:1.62rem;font-size:.83rem}
+.hl-label{display:flex;align-items:center;gap:.45rem;white-space:nowrap;transition:color .15s ease}
+.hl-icon{display:inline-grid;flex:none;place-items:center;width:1.25rem;height:1.25rem;border-radius:6px;background:var(--oat);color:var(--brand);transition:background .15s ease,color .15s ease}
+.hl-row:not(.ours) .hl-icon{background:var(--sunken);color:#6D737F}
+.hl-icon svg{width:.82rem;height:.82rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hl-bar{height:.6rem;border-radius:3px;background:var(--sunken)}
+.hl-bar i{display:block;height:100%;border-radius:3px;background:#B5B8BE;transition:background .15s ease}
+.hl-row.ours{font-weight:700;color:var(--brand)}
+.hl-row.ours .hl-bar i{background:var(--coral)}
+.hl-val{font-variant-numeric:tabular-nums;text-align:right;transition:color .15s ease}
+.hl-side-title{margin-bottom:.75rem;font-family:var(--serif);font-size:1.02rem;font-weight:700}
+.hl-slots{margin:.2rem 0 0;padding:0;list-style:none;display:grid;gap:.58rem}
+.hl-slots li{padding-left:.72rem;border-left:3px solid var(--brand);font-size:.81rem;line-height:1.45;color:#33363D}
+.hl-slots b{display:block;font-size:.86rem;color:var(--ink)}
+.hl-sum{margin-top:.9rem;font-size:.83rem;line-height:1.5;color:#33363D}
+.hl-sum b{font-family:var(--serif);font-size:1.08rem;color:var(--brand)}
+.hl-dialog{margin:0;padding:0;list-style:none;counter-reset:q;display:grid;gap:.45rem}
+.hl-dialog li{counter-increment:q;display:grid;grid-template-columns:1.3rem minmax(0,1fr) auto;align-items:center;gap:.4rem;padding:.38rem .52rem;border-radius:8px;background:var(--oat);font-size:.82rem}
+.hl-dialog li::before{content:"S" counter(q);font-weight:700;color:var(--brand);font-size:.75rem}
+.hl-dialog b{padding:.06rem .42rem;border-radius:6px;background:#fff;text-align:center;font-variant-numeric:tabular-nums;color:var(--brand);font-size:.78rem}
+@media (max-width:1080px){.stats.hl-wrap{grid-template-columns:1fr}.hl-mid{padding:1.35rem 0;border:0;border-top:1px solid var(--warm-line);border-bottom:1px solid var(--warm-line)}}
+
+/* Reading position rail */
+.pnav{display:none}
+@media (min-width:1360px){.pnav{position:fixed;z-index:30;left:clamp(18px,2vw,40px);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;--row:2.25rem;--dot:7px}}
+.pnav-track{position:absolute;left:calc(var(--dot) / 2 - 1px);top:calc(var(--row) / 2);bottom:calc(var(--row) / 2);width:2px;border-radius:1px;background:rgba(20,20,19,.12)}
+.pnav-fill{position:absolute;left:0;top:0;width:100%;height:0;border-radius:1px;background:var(--coral)}
+.pnav a{position:relative;display:flex;align-items:center;gap:.8rem;height:var(--row);text-decoration:none}
+.pnav b{position:relative;flex:none;width:var(--dot);height:var(--dot);border-radius:50%;background:var(--ivory);box-shadow:inset 0 0 0 1.5px rgba(20,20,19,.15);transition:transform .3s ease,background .3s ease}
+.pnav a.read b,.pnav a.on b{background:var(--coral);box-shadow:none}
+.pnav a.on b{transform:scale(1.45)}
+.pnav a.on b::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--coral);animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(3.2);opacity:0}}
+.pnav a span{padding:.15rem .45rem;border-radius:.3rem;background:rgba(255,255,255,.95);font-size:.75rem;white-space:nowrap;opacity:0;transform:translateX(-4px);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
+.pnav:hover a span,.pnav.active a span{opacity:1;transform:none;pointer-events:auto}
+.pnav a:hover b{transform:scale(1.45)}
+.pnav a.on span{opacity:1;transform:none;font-weight:700;color:var(--brand)}
+
+/* Top bar */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:40;background:rgba(255,255,255,.88);-webkit-backdrop-filter:saturate(160%) blur(14px);backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid var(--warm-line);transform:translateY(-100%);transition:transform .3s ease}
+.topbar.show{transform:none}
+.topbar .container{display:flex;align-items:center;gap:1.5rem;height:56px}
+.topbar .brand{flex:none;font-family:var(--serif);font-size:1.18rem;font-weight:700;color:var(--brand);text-decoration:none}
+.topbar nav{display:flex;gap:.2rem;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+.topbar nav::-webkit-scrollbar{display:none}
+.topbar nav a{padding:.35rem .7rem;border-radius:999px;font-size:.9rem;text-decoration:none;white-space:nowrap;transition:background .2s ease}
+.topbar nav a:hover{background:var(--oat)}
+.topbar nav a.on{background:var(--oat);color:var(--brand-hover);font-weight:700}
+.topbar .btn{height:2.2rem;padding-inline:.95rem;font-size:.92rem}
+@media (max-width:860px){.topbar nav{display:none}.topbar .btn{margin-left:auto}}
+
+/* Paper grain & cards */
+.sheet{padding:1.15rem 1.45rem;border:1px solid #E6E8EC;border-radius:var(--r-lg);background:#fff;box-shadow:var(--sheet-shadow)}
+.table-wrap.sheet{padding:.45rem 1rem}
+pre{margin:0;padding:1.25rem 1.5rem;overflow-x:auto;border-radius:var(--r-md);background:#fff;border:1px solid #E6E8EC;box-shadow:var(--sheet-shadow);font:400 .85rem/1.6 var(--mono);text-align:left}
+footer{padding:2.4rem 0 2.8rem;background:rgba(255,255,255,.75);border-top:1px solid #E6E8EC;font-size:.9rem;text-align:center}
+footer .meta{margin-top:.35rem;font-size:.82rem;color:#5A5E68}
+.fig-no{font-weight:700;color:var(--ink)}
+.kicker{display:inline-block;margin-right:.7rem;font:500 .62em/1 var(--mono);letter-spacing:.04em;color:var(--brand);vertical-align:.3em}
+
+details.abs summary{cursor:pointer;list-style:none;margin-top:.9rem;font-size:.9rem;font-weight:500;color:var(--brand)}
+details.abs summary::-webkit-details-marker{display:none}
+details.abs summary::before{content:"+ ";font-family:var(--mono)}
+details.abs[open] summary::before{content:"\2212  "}
+details.abs p{margin-top:.8rem;font-size:.95rem;line-height:1.75;color:#33332F}
+.abs-points{margin:0;padding:0;list-style:none;display:grid;gap:.62rem}
+.abs-points li{position:relative;padding-left:1.3rem;font-size:.98rem;line-height:1.62}
+.abs-points li::before{content:"";position:absolute;left:.2rem;top:.62em;width:6px;height:6px;border-radius:2px;background:var(--brand)}
+
+.note-card{max-width:920px;margin:1.35rem auto 0;padding:.92rem 1.25rem;border:1px solid #E6E8EC;border-left:3px solid var(--brand);border-radius:10px;background:#fff;box-shadow:var(--sheet-shadow);font-size:.94rem;line-height:1.65}
+.note-card b{color:var(--brand)}
+.sub{margin:2.4rem 0 1rem;font-family:var(--serif);font-size:1.25rem;font-weight:700;text-align:center}
+.pan-hint{display:none}
+
+@media (hover:hover){
+  .hl-row:hover .hl-label,.hl-row:hover .hl-val{color:var(--brand)}
+  .hl-row:hover .hl-icon{background:var(--brand);color:#fff}
+  .hl-row:not(.ours):hover .hl-bar i{background:#7D8B97}
+  .hl-row.ours:hover .hl-bar i{background:var(--brand-hover)}
+  tbody tr:not(.sec-row):hover td{background:#F5F6F7}
+  tbody tr.ours:hover td{background:#FBDCC4}
+}
+@media (max-width:600px){
+  .container{padding-inline:1rem}
+  .hero{padding:3rem 0 1.6rem}
+  .section{padding:2rem 0}
+  .section h2{font-size:1.58rem}
+  .figure{padding:.65rem}
+  .slot.pan{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .slot.pan img{width:auto!important;max-width:none!important;height:auto;min-width:680px}
+  .pan-hint{display:block;margin-top:.5rem;font-size:.78rem;text-align:center;color:#5A5E68}
+  .chip{padding:.36rem .62rem;font-size:.82rem}
+  table{font-size:.78rem}
+  th,td{padding:.45rem .34rem}
+  thead th{white-space:normal;line-height:1.25}
+  pre{white-space:pre-wrap;word-break:break-word;font-size:.76rem;padding:1rem}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}.pnav a.on b::after{animation:none;display:none}}
+
+
+/* PhyVGGT additions */
+tbody tr.priv td{color:#8A8E95}
+tbody tr.priv td:first-child::after{content:" *";}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem 1.3rem;margin-top:.7rem;font-size:.84rem;color:#33363D}
+.legend i{display:inline-block;width:.85rem;height:.85rem;margin-right:.4rem;border-radius:3px;vertical-align:-.12em}
+.hl-row.priv{color:#8A8E95}
+.hl-row.priv .hl-bar i{background:repeating-linear-gradient(135deg,#C9CCD1 0 4px,#E3E5E8 4px 8px)}
+.keyfig{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:1.4rem}
+.keyfig div{padding:1rem 1.1rem;border:1px solid var(--warm-line);border-radius:var(--r-md);background:#fff;text-align:center}
+.keyfig b{display:block;font-family:var(--serif);font-size:1.7rem;font-weight:700;color:var(--brand);line-height:1.2}
+.keyfig span{font-size:.86rem;color:#4A4E57}
+@media (max-width:600px){.keyfig{grid-template-columns:1fr}}
+.author{margin-top:1.1rem;font-size:1.05rem;color:#2A2D33}
+.affil{margin-top:.25rem;font-size:.9rem;color:#4A4E57}
+</style>
+</head>
+
+<body>
+<div class="topbar" id="topbar">
+  <div class="container">
+    <a class="brand" href="#top">PhyVGGT</a>
+    <nav id="topnav"></nav>
+    <a class="btn btn-primary" href="assets/PhyVGGT_paper.pdf" target="_blank" rel="noopener">Paper</a>
+  </div>
+</div>
+
+<nav class="pnav" id="pnav" aria-label="Sections"><span class="pnav-track"><span class="pnav-fill" id="pnav-fill"></span></span></nav>
+
+<header class="hero" id="top"><div class="container">
+  <h1 class="title"><span class="wordmark">PhyVGGT</span>: Feed-Forward Articulated Object Reconstruction from Monocular Videos</h1>
+  <p class="author">Qi Shao<sup>1,2</sup>, Zhihao Cao<sup>3,6</sup>, Shuhao Zhai<sup>4</sup>, Anh Nguyen<sup>2,5</sup>, Hong Liang<sup>1</sup>, Baoru Huang<sup>2,5</sup>, Liang Li<sup>1</sup></p>
+  <p class="affil"><sup>1</sup>Harbin Engineering University &nbsp; <sup>2</sup>University of Liverpool &nbsp; <sup>3</sup>ETH Zurich &nbsp; <sup>4</sup>University of Macau &nbsp; <sup>5</sup>Imperial College London &nbsp; <sup>6</sup>National University of Singapore</p>
+  <div class="links">
+    <a class="btn btn-primary" href="assets/PhyVGGT_paper.pdf" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4h-6a3 3 0 0 0-3 1.5A3 3 0 0 0 9 4H3v15h6a2 2 0 0 1 2 2h2a2 2 0 0 1 2-2h6V4zM11 18.3a4 4 0 0 0-2-.5H5V6h4a2 2 0 0 1 2 2v10.3zm8-.5h-4a4 4 0 0 0-2 .5V8a2 2 0 0 1 2-2h4v11.8z"/></svg>Paper PDF
+    </a>
+    <a class="btn" href="https://github.com/PhyVGGT" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>Code
+    </a>
+  </div>
+</div></header>
+
+<section class="section" id="overview" data-nav="Overview" style="padding-top:0"><div class="container">
+  <div class="stats hl-wrap">
+    <aside class="hl-side">
+      <p class="hl-side-title">Why direct joint prediction fails on casual videos</p>
+      <ul class="hl-slots">
+        <li><b>Blurred part boundaries</b>Deep cross-frame attention in 3D foundation models smooths moving part edges into the stationary body.</li>
+        <li><b>Depth bias along the viewing ray</b>Cross-frame context underestimates moving-part displacement along the ray, tilting continuous axis estimates.</li>
+        <li><b>Small opening angles</b>With an unknown rest pose, continuous axis and pivot estimation becomes ill-conditioned under small motion.</li>
+      </ul>
+      <p class="hl-sum"><b>92.2%</b> of ground-truth axes across 38 categories lie within 10&deg; of the static Manhattan frame</p>
+    </aside>
+    <div class="hl-mid" id="stats"></div>
+    <aside class="hl-side">
+      <p class="hl-side-title">How PhyVGGT anchors to the static base</p>
+      <ol class="hl-dialog">
+        <li><span>Frozen VGGT point maps &amp; tokens</span><b>1 pass</b></li>
+        <li><span>Static-base &amp; part queries</span><b>K = 8</b></li>
+        <li><span>Manhattan frame from static normals</span><b>3 axes</b></li>
+        <li><span>Bingham axis selection &amp; pivot solve</span><b>closed form</b></li>
+      </ol>
+      <p class="hl-sum"><b>6.8 s</b> per 48-frame video against 2.6&ndash;11.9 h per scene for Articulat3D</p>
+      <p class="hl-sum">Trained only on synthetic PartNet-Mobility clips and transferred <b style="white-space:nowrap">zero-shot</b> to real videos and to three unseen 3D backbones.</p>
+    </aside>
+  </div>
+</div></section>
+
+<section class="section" id="abstract" data-nav="Abstract"><div class="container">
+  <h2><span class="kicker">01</span>Abstract</h2>
+  <div class="sheet">
+    <ul class="abs-points">
+      <li><b>Problem.</b> Reconstructing 3D movable parts, joint parameters and unseen articulation states from an uncalibrated monocular video, without depth sensors, camera poses or per-scene optimisation.</li>
+      <li><b>Challenge.</b> Feed-forward 3D foundation models give dense point maps but no parts or joints, and fitting joints on these point maps fails because moving boundaries blur, motion along the viewing ray is underestimated and small opening angles leave continuous axes ill-conditioned.</li>
+      <li><b>Method.</b> PhyVGGT anchors part matching and joint estimation to the undistorted stationary base: a <i>Part and Motion Decoder</i> references part queries to a static-base query, and a <i>Kinematic Inference Layer</i> selects the joint axis on the base's Manhattan frame under a Bingham posterior and solves the hinge pivot linearly.</li>
+      <li><b>Result.</b> Trained only on synthetic data, PhyVGGT achieves state-of-the-art monocular performance across five synthetic and real-world benchmarks, surpasses posed RGB-D ArtiPoint in median error on Arti4D, and runs in 6.8 s per 48-frame video.</li>
+    </ul>
+    <details class="abs">
+      <summary>Full abstract</summary>
+      <p>Reconstructing an articulated object with its 3D movable parts, joint parameters and unseen articulation states from an uncalibrated monocular video is essential for robot manipulation and interactive digital twins. Existing per-scene optimisation methods require minutes to hours and external depth or camera poses, whereas feed-forward 3D foundation models reconstruct dense point maps in one pass without segmenting movable parts or inferring joints. Even on these monocular point maps, regressing or fitting continuous joints directly fails on casual videos, since cross-frame attention blurs moving part boundaries in deep layers, underestimates motion along the viewing ray and leaves continuous axes ill-conditioned under small opening angles. To address these challenges, we propose <b>PhyVGGT</b>, a single-pass framework on a frozen 3D foundation model that anchors moving-part matching and closed-form joint estimation to the undistorted geometry of the stationary base. First, our Part and Motion Decoder fuses intermediate per-frame tokens with global tokens and references part queries to a static-base query to segment 3D parts, align point maps on the static base and predict learned Bingham priors. Second, our Kinematic Inference Layer fits an orthogonal Manhattan frame to static surface normals, selects the joint axis in closed form under a Bingham posterior combining pairwise motion scatter with the learned priors, and solves a linear system for the hinge pivot to drive unseen states. Trained solely on synthetic data, PhyVGGT achieves state-of-the-art monocular performance across five benchmarks, outperforming FAMOS and monocular ArtiPoint, surpassing posed RGB-D ArtiPoint in median error, and running in 6.8 s per 48-frame video against hours of per-scene optimisation in Articulat3D.</p>
+    </details>
+  </div>
+  <div class="figure" style="margin-top:1.5rem">
+    <div class="slot pan"><img src="assets/teaser.png" alt="PhyVGGT overview: monocular video to 3D movable parts, joints and unseen states"></div>
+  </div>
+  <p class="pan-hint">Swipe horizontally to inspect details</p>
+  <p class="figure-caption"><span class="fig-no">Figure 1.</span> Single-pass 3D articulated object reconstruction from uncalibrated monocular RGB videos. Given casual RGB frames (left), PhyVGGT segments 3D movable parts (teal), estimates joint axes (orange) and hinge pivots (red) across observed articulation states, and drives each part to unseen states in 1.2 s per clip (centre), generalising zero-shot from synthetic training to diverse real-world scenes (right).</p>
+</div></section>
+
+<section class="section" id="motivation" data-nav="Motivation"><div class="container">
+  <div class="split">
+    <figure>
+      <div class="figure"><div class="slot"><img src="assets/design_bingham.png" alt="Kinematic Inference Layer on real point maps"></div></div>
+      <p class="figure-caption"><span class="fig-no">Figure 2.</span> Static-base normals form an orthogonal Manhattan frame (Candidates). Combining pairwise motion scatter with the learned Bingham prior defines an antipodal Bingham posterior (Criterion) that selects the joint axis, from which the hinge pivot and joint states are solved (Selected).</p>
+    </figure>
+    <div>
+      <h2><span class="kicker">02</span>Anchor to the Stationary Base</h2>
+      <p class="lead">Unlike moving parts, the stationary base is unaffected by cross-frame depth bias and stays geometrically accurate across frames. In cabinets, appliances and furniture, flat faces meet at right angles, so joint axes align with the three orthogonal directions of the base, and hinge pivots lie on the boundary between part and base.</p>
+      <ol class="steps">
+        <li><b>Match parts relative to the base</b><span>Referencing every part query to a static-base query cancels handheld camera drift during dense 3D matching.</span></li>
+        <li><b>Select instead of regress</b><span>Restricting candidate axes to the base's Manhattan frame turns ill-conditioned continuous regression into a closed-form three-way selection, exact whenever the depth-induced tilt stays below 45&deg;. Measured on frozen point maps, sliding motion compresses to 0.60&ndash;0.69 along the viewing ray across four backbones, tilting motion scatter by at most 14.5&deg;.</span></li>
+        <li><b>Solve the pivot linearly</b><span>Given the selected axis, the hinge pivot follows from a 3&times;3 positive-definite linear system, so axis tilt no longer shifts the lever arm.</span></li>
+      </ol>
+    </div>
+  </div>
+</div></section>
+
+<section class="section" id="method" data-nav="Method"><div class="container">
+  <h2><span class="kicker">03</span>Method</h2>
+  <div class="figure"><div class="slot pan"><img src="assets/pipeline.png" alt="Architecture overview of PhyVGGT"></div></div>
+  <p class="pan-hint">Swipe horizontally to inspect the full architecture</p>
+  <p class="figure-caption"><span class="fig-no">Figure 3.</span> Architecture overview of PhyVGGT. Given an uncalibrated monocular video, a frozen VGGT backbone extracts patch, per-frame and global tokens alongside 3D point maps (DPT) and tracking features (Track). The trainable Part and Motion Decoder fuses these streams and updates learnable base and part queries across N attention blocks to output part masks, correspondences and Bingham priors. The Kinematic Inference Layer fits a Manhattan frame to static normals, scores its three axes via a three-way softmax and solves for joint type, hinge pivot and unseen states via forward kinematics.</p>
+  <div class="split" style="margin-top:1.6rem;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr)">
+    <figure>
+      <div class="figure narrow"><div class="slot"><img src="assets/decoder_block.png" alt="One block of the Part and Motion Decoder" style="max-width:300px"></div></div>
+      <p class="figure-caption"><span class="fig-no">Figure 4.</span> One block of the Part and Motion Decoder.</p>
+    </figure>
+    <div>
+      <p class="note-card" style="margin-top:0"><b>Part and Motion Decoder.</b> Per-frame self-attention in VGGT keeps sharp part edges, while deep global attention captures motion but smooths moving boundaries. The decoder fuses per-frame and global tokens from multiple VGGT layers, lets per-frame queries localise boundaries within each frame and clip queries attend across frames, and updates each part query from its difference to the static-base query. Static-base correspondences align all point maps on the base before rigid part motion is recovered.</p>
+      <p class="note-card"><b>Kinematic Inference Layer.</b> Fourth-order alignment of static surface normals yields an orthogonal Manhattan frame even when two object dimensions are similar. A Bingham posterior combining motion scatter with the learned prior reduces to a closed-form softmax over the three frame axes, and a linear solve gives the hinge pivot used to drive unseen states.</p>
+    </div>
+  </div>
+</div></section>
+
+<section class="section" id="results" data-nav="Results"><div class="container">
+  <h2><span class="kicker">04</span>Results</h2>
+  <div class="chips" id="results-chips"></div>
+  <div class="table-wrap sheet"><table id="bench"></table></div>
+  <p class="table-note" id="bench-note"></p>
+
+  <h3 class="sub">Qualitative Results</h3>
+  <div class="chips" id="qual-chips"></div>
+  <div class="figure"><div class="slot pan"><img id="qual-img" src="assets/cmp_arti4d.png" alt="Qualitative results"></div></div>
+  <p class="pan-hint">Swipe horizontally to inspect details</p>
+  <p class="figure-caption" id="qual-cap"></p>
+</div></section>
+
+<section class="section" id="ablation" data-nav="Ablation"><div class="container">
+  <h2><span class="kicker">05</span>Ablation &amp; Backbone Transfer</h2>
+  <div class="chips" id="abl-chips"></div>
+  <div class="table-wrap sheet"><table id="abl"></table></div>
+  <p class="table-note" id="abl-note"></p>
+  <div class="figure" style="margin-top:1.6rem"><div class="slot pan"><img src="assets/motion_range.png" alt="Accuracy stratified by motion amplitude"></div></div>
+  <p class="pan-hint">Swipe horizontally to inspect details</p>
+  <p class="figure-caption"><span class="fig-no">Figure 5.</span> Joint accuracy at 10&deg; stratified by observed motion amplitude across four development benchmarks. Under small opening angles, learned Bingham priors disambiguate the three Manhattan axes, reaching 75.0% on 10&deg;&ndash;20&deg; synthetic rotations and 58.6% on small-motion D3D-HOI-dev clips against 41.7% and 21.8% for continuous Motion estimate.</p>
+</div></section>
+
+<section class="section" id="bibtex" data-nav="BibTeX"><div class="container">
+  <h2><span class="kicker">06</span>BibTeX</h2>
+<pre id="bib">@article{shao2026phyvggt,
+  title   = {{PhyVGGT}: Feed-Forward Articulated Object Reconstruction from Monocular Videos},
+  author  = {Shao, Qi and Cao, Zhihao and Zhai, Shuhao and Nguyen, Anh and Liang, Hong and Huang, Baoru and Li, Liang},
+  journal = {arXiv preprint},
+  year    = {2026}
+}</pre>
+</div></section>
+
+<footer><div class="container">PhyVGGT Project Page<p class="meta">All runtimes measured on a single NVIDIA A100 GPU.</p></div></footer>
+
+<script>
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+
+const ICON_OURS = '<path d="M4 20V9l8-5 8 5v11"/><path d="M12 4v16" stroke-dasharray="2 2"/><path d="M12 11l6 3"/>';
+const ICON_BASE = '<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="12" cy="12" r="3"/>';
+
+const OVERVIEW_BARS = [
+  {
+    name: 'Arti4D Joint Accuracy within 5°',
+    metric: '329 real egocentric test clips, higher is better',
+    icon: '<path d="M4 19l5-7 4 3 7-10"/><circle cx="20" cy="5" r="2"/>',
+    max: 0.55,
+    rows: [
+      {label: 'PhyVGGT (Ours)', val: 0.493, disp: '49.3%', ours: true},
+      {label: 'ArtiPoint, RGB-D *', val: 0.422, disp: '42.2%', priv: true},
+      {label: 'FAMOS', val: 0.241, disp: '24.1%'},
+      {label: 'ArtiPoint, π³', val: 0.198, disp: '19.8%'},
+      {label: 'OPDMulti', val: 0.146, disp: '14.6%'},
+      {label: 'Motion estimate', val: 0.090, disp: '9.0%'},
+      {label: 'Direct regression', val: 0.006, disp: '0.6%'}
+    ]
+  },
+  {
+    name: 'D3D-HOI Joint Accuracy within 10°',
+    metric: '170 real third-person test clips, higher is better',
+    icon: '<circle cx="9" cy="7" r="3"/><path d="M4 20c0-4 2.5-6 5-6s5 2 5 6"/><rect x="15" y="9" width="5" height="11" rx="1"/>',
+    max: 0.8,
+    rows: [
+      {label: 'PhyVGGT (Ours)', val: 0.724, disp: '72.4%', ours: true},
+      {label: 'OPDMulti', val: 0.418, disp: '41.8%'},
+      {label: 'Motion estimate', val: 0.369, disp: '36.9%'},
+      {label: 'FAMOS', val: 0.145, disp: '14.5%'},
+      {label: 'Direct regression', val: 0.063, disp: '6.3%'}
+    ]
+  }
+];
+
+(function renderOverview() {
+  const host = document.getElementById('stats');
+  host.innerHTML = '<p class="hl-title">Zero-Shot Synthetic-to-Real Transfer from Uncalibrated RGB</p><div class="hl-grid">' +
+    OVERVIEW_BARS.map(p => (
+      '<div class="hl-panel">' +
+      `<p class="hl-name"><svg class="hl-head" viewBox="0 0 24 24" aria-hidden="true">${p.icon}</svg>${esc(p.name)}<span>${esc(p.metric)}</span></p>` +
+      p.rows.map(r => {
+        const w = Math.max(2.5, Math.min(100, (r.val / p.max) * 100)).toFixed(1);
+        const cls = r.ours ? ' ours' : r.priv ? ' priv' : '';
+        return `<div class="hl-row${cls}"><span class="hl-label"><span class="hl-icon"><svg viewBox="0 0 24 24" aria-hidden="true">${r.ours ? ICON_OURS : ICON_BASE}</svg></span>${esc(r.label)}</span><span class="hl-bar"><i style="width:${w}%"></i></span><span class="hl-val">${esc(r.disp)}</span></div>`;
+      }).join('') +
+      '</div>'
+    )).join('') + '</div>';
+})();
+
+const PRIV_NOTE = ' Grey rows marked * use privileged inputs (sensor depth and poses, or ground-truth depth, poses, masks and kinematic trees).';
+
+const RESULTS = [
+  {
+    label: 'Arti4D & D3D-HOI',
+    no: 'Table 1.',
+    note: 'Zero-shot comparison on real-world Arti4D (handheld egocentric RGB-D videos, RGB only used by PhyVGGT) and D3D-HOI (third-person videos). Joint accuracy requires both the correct joint type and an axis within 5° or 10°; Med. is the median axis error in degrees. Bold marks the best non-privileged result.' + PRIV_NOTE,
+    groups: [['Arti4D (329 clips)', 3], ['D3D-HOI (170 clips)', 3]],
+    columns: ['≤ 5° ↑', '≤ 10° ↑', 'Med. ↓', '≤ 5° ↑', '≤ 10° ↑', 'Med. ↓'],
+    rows: [
+      {cells: ['ArtiPoint, RGB-D', '0.422', '0.614', '6.30', '–', '–', '–'], priv: true},
+      {cells: ['Direct regression', '0.006', '0.020', '57.07', '0.022', '0.063', '37.15']},
+      {cells: ['OPDMulti', '0.146', '0.292', '64.15', '0.147', '0.418', '11.55']},
+      {cells: ['ArtiPoint, π³', '0.198', '0.389', '15.90', '–', '–', '–']},
+      {cells: ['FAMOS', '0.241', '0.369', '23.24', '0.108', '0.145', '68.93']},
+      {cells: ['Motion estimate', '0.090', '0.280', '21.92', '0.186', '0.369', '15.93']},
+      {cells: ['PhyVGGT (Ours)', '0.493', '0.604', '4.79', '0.629', '0.724', '2.77'], ours: true, boldIdx: [0,1,2,3,4,5]}
+    ]
+  },
+  {
+    label: 'RBO',
+    no: 'Table 2.',
+    note: 'Comparison on 357 real-world tabletop RBO videos with frequent hand occlusion. Joint accuracy, median axis error in degrees, and revolute / prismatic accuracy at 10°.' + PRIV_NOTE,
+    groups: [['All Joints', 3], ['Accuracy ≤ 10° by Type', 2]],
+    columns: ['≤ 5° ↑', '≤ 10° ↑', 'Med. ↓', 'Revolute ↑', 'Prismatic ↑'],
+    rows: [
+      {cells: ['ArtiPoint, RGB-D', '0.148', '0.246', '51.3', '0.253', '0.229'], priv: true},
+      {cells: ['Direct regression', '0.015', '0.046', '48.7', '0.041', '0.059']},
+      {cells: ['OPDMulti', '0.050', '0.129', '44.7', '0.126', '0.135']},
+      {cells: ['ArtiPoint, π³', '0.034', '0.098', '64.2', '0.119', '0.042']},
+      {cells: ['FAMOS', '0.045', '0.119', '68.9', '0.153', '0.024']},
+      {cells: ['Motion estimate', '0.063', '0.185', '29.2', '0.206', '0.128']},
+      {cells: ['PhyVGGT (Ours)', '0.134', '0.241', '23.3', '0.275', '0.149'], ours: true, boldIdx: [0,1,2,3,4]}
+    ]
+  },
+  {
+    label: 'PartNet-Mobility',
+    no: 'Table 3.',
+    note: 'Comparison on synthetic PartNet-Mobility videos: 290 joints from the 10 trained categories (Syn-10) and 510 joints across 38 categories, 28 of them unseen (Syn-38). ‡ OPDMulti is pretrained on openable furniture.',
+    groups: [['Syn-10 (290 joints)', 3], ['Syn-38 (510 joints)', 3]],
+    columns: ['≤ 5° ↑', '≤ 10° ↑', 'Med. ↓', '≤ 5° ↑', '≤ 10° ↑', 'Med. ↓'],
+    rows: [
+      {cells: ['Direct regression', '0.061', '0.198', '20.60', '0.042', '0.128', '33.40']},
+      {cells: ['OPDMulti ‡', '0.028', '0.072', '75.03', '–', '–', '–']},
+      {cells: ['FAMOS', '0.426', '0.529', '7.08', '0.314', '0.398', '32.82']},
+      {cells: ['Motion estimate', '0.366', '0.543', '7.96', '0.259', '0.410', '15.76']},
+      {cells: ['PhyVGGT (Ours)', '0.762', '0.778', '1.53', '0.610', '0.631', '2.27'], ours: true, boldIdx: [0,1,2,3,4,5]}
+    ]
+  },
+  {
+    label: 'Articulat3D-Sim',
+    no: 'Table 4.',
+    note: 'Comparison on 48-frame Articulat3D-Sim (20 scenes, 48 joints). PhyVGGT runs from uncalibrated RGB alone in 6.8 s, over 1,300× faster than per-scene Articulat3D, and reaches a lower median error on seen categories.' + PRIV_NOTE,
+    groups: [['Trained', 1], ['All Joints (48)', 2], ['Unseen', 1], ['Cost', 1]],
+    columns: ['Med. ↓', '≤ 5° ↑', '≤ 10° ↑', '≤ 10° ↑', 'Time ↓'],
+    rows: [
+      {cells: ['Articulat3D', '2.63', '0.479', '0.521', '0.316', '2.6–11.9 h'], priv: true},
+      {cells: ['Direct regression', '21.67', '0.035', '0.139', '0.000', '6.8 s']},
+      {cells: ['Motion estimate', '11.79', '0.215', '0.347', '0.158', '6.8 s']},
+      {cells: ['PhyVGGT (Ours)', '2.20', '0.431', '0.486', '0.246', '6.8 s'], ours: true, boldIdx: [0,1,2,3,4]}
+    ]
+  },
+  {
+    label: '3D Parts & Hinge Pivots',
+    no: 'Table 5.',
+    note: '3D part, surface and hinge pivot reconstruction. Upper rows report 3D movable / part IoU and surface point error; lower rows report held-out hinge pivot median error in cm and accuracy within 10 cm.',
+    groups: [['Split', 3]],
+    columns: ['Syn-10', 'Syn-38', 'Third Column'],
+    custom: [
+      {sec: '3D Part & Surface Geometry', heads: ['Syn-10-val (IoU)', 'Syn-38-val (IoU)', 'Point Error']},
+      {cells: ['Final layer only (l = 23)', '0.877 / 0.663', '0.590 / 0.542', '0.032']},
+      {cells: ['w/o Tracking features', '0.888 / 0.694', '0.608 / 0.564', '0.032']},
+      {cells: ['PhyVGGT (Ours)', '0.891 / 0.701', '0.617 / 0.576', '0.032'], ours: true, boldIdx: [0,1,2]},
+      {sec: '3D Hinge Pivot (Median cm / ≤ 10 cm)', heads: ['Syn-10 (290)', 'Syn-38 (510)', 'RBO (357)']},
+      {cells: ['Direct regression', '6.49 / 0.64', '5.70 / 0.68', '9.34 / 0.53']},
+      {cells: ['FAMOS', '4.35 / 0.69', '4.96 / 0.67', '11.14 / 0.46']},
+      {cells: ['PhyVGGT (Ours)', '3.16 / 0.83', '3.36 / 0.82', '8.76 / 0.55'], ours: true, boldIdx: [0,1,2]}
+    ]
+  }
+];
+
+const ABLATIONS = [
+  {
+    label: 'Additive Ablation',
+    no: 'Table 6.',
+    note: 'Additive ablation on the four development splits: joint accuracy at 10° as each module and cue is introduced. Motion scatter alone captures active displacement but stays tilted towards the viewing ray; the Bingham prior on the Manhattan frame alone lacks motion cues; the full Kinematic Inference Layer unifies both.',
+    groups: [['Joint Accuracy ≤ 10° ↑', 4]],
+    columns: ['Arti4D-dev', 'D3D-dev', 'Syn-10-val', 'Syn-38-val'],
+    rows: [
+      {cells: ['Direct regression', '0.063', '0.058', '0.188', '0.125']},
+      {cells: ['+ Part and Motion Decoder', '0.259', '0.198', '0.390', '0.303']},
+      {cells: [' + Motion scatter only', '0.482', '0.628', '0.497', '0.386']},
+      {cells: [' + Bingham prior on Manhattan frame only', '0.522', '0.620', '0.778', '0.601']},
+      {cells: ['+ Full Kinematic Inference Layer (Ours)', '0.725', '0.744', '0.803', '0.636'], ours: true, boldIdx: [0,1,2,3]}
+    ]
+  },
+  {
+    label: 'Backbone Transfer',
+    no: 'Table 7.',
+    note: 'Controlled VGGT-1B comparison and zero-shot backbone transfer at 10°. Upper rows share VGGT-1B point maps and masks; lower rows (†) plug PhyVGGT zero-shot into unseen frozen backbones, running in 1.2 s per clip.',
+    groups: [['', 1], ['Joint Accuracy ≤ 10° ↑', 3]],
+    columns: ['Backbone', 'Arti4D-dev', 'D3D-dev', 'Syn-10-val'],
+    rows: [
+      {sec: 'Shared VGGT-1B point maps'},
+      {cells: ['Direct regression', 'VGGT-1B', '0.063', '0.058', '0.188']},
+      {cells: ['ArtiPoint', 'VGGT-1B', '0.271', '–', '–']},
+      {cells: ['FAMOS', 'VGGT-1B', '0.376', '0.116', '0.502']},
+      {cells: ['Motion estimate', 'VGGT-1B', '0.482', '0.628', '0.497']},
+      {cells: ['PhyVGGT (Ours)', 'VGGT-1B', '0.725', '0.744', '0.803'], ours: true, boldIdx: [1,2,3]},
+      {sec: 'Zero-shot transfer to unseen backbones (†)'},
+      {cells: ['PhyVGGT (Ours)', 'StreamVGGT †', '0.753', '0.783', '0.743']},
+      {cells: ['PhyVGGT (Ours)', 'STream3R †', '0.769', '0.748', '0.801']},
+      {cells: ['PhyVGGT (Ours)', 'π³ †', '0.765', '0.775', '0.802']}
+    ]
+  }
+];
+
+function makeChips(host, items, onPick) {
+  const wrap = document.createElement('div');
+  wrap.className = 'chip-group';
+  const all = items.map(it => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.textContent = it.label;
+    b.addEventListener('click', () => pick(b, it));
+    wrap.append(b); return [b, it];
+  });
+  host.append(wrap);
+  function pick(btn, it) { all.forEach(([b]) => b.setAttribute('aria-pressed', String(b === btn))); onPick(it); }
+  pick(all[0][0], all[0][1]);
+}
+
+function rowHtml(r, starts) {
+  const [name, ...vals] = r.cells;
+  const bset = new Set(r.boldIdx || []);
+  const tds = vals.map((v, j) => {
+    const cls = [starts.has(j) ? 'grp' : '', bset.has(j) ? 'b' : ''].filter(Boolean).join(' ');
+    return `<td${cls ? ` class="${cls}"` : ''}>${esc(v)}</td>`;
+  }).join('');
+  const trc = r.ours ? ' class="ours"' : r.priv ? ' class="priv"' : '';
+  return `<tr${trc}><td>${r.ours ? `<span>${esc(name)}</span>` : esc(name)}</td>${tds}</tr>`;
+}
+
+function renderTable(T, tableId, noteId) {
+  let html;
+  if (T.custom) {
+    const starts = new Set([0]);
+    html = '<tbody>' + T.custom.map(r => r.sec
+      ? `<tr class="sec-row"><td>${esc(r.sec)}</td>${r.heads.map((h, j) => `<td${j === 0 ? ' class="grp"' : ''}>${esc(h)}</td>`).join('')}</tr>`
+      : rowHtml(r, starts)).join('') + '</tbody>';
+  } else {
+    const starts = new Set(); let k = 0;
+    T.groups.forEach(([, n]) => { starts.add(k); k += n; });
+    const ncols = T.columns.length + 1;
+    html =
+      '<thead><tr><th></th>' + T.groups.map(([g, n]) => `<th class="grp" colspan="${n}">${esc(g)}</th>`).join('') + '</tr>' +
+      '<tr><th>Method</th>' + T.columns.map((c, j) => `<th${starts.has(j) ? ' class="grp"' : ''}>${esc(c)}</th>`).join('') + '</tr></thead>' +
+      '<tbody>' + T.rows.map(r => r.sec ? `<tr class="sec-row"><td colspan="${ncols}">${esc(r.sec)}</td></tr>` : rowHtml(r, starts)).join('') + '</tbody>';
+  }
+  document.getElementById(tableId).innerHTML = html;
+  document.getElementById(noteId).innerHTML = `<span class="fig-no">${esc(T.no)}</span> ${esc(T.note)}`;
+}
+
+makeChips(document.getElementById('results-chips'), RESULTS, T => renderTable(T, 'bench', 'bench-note'));
+makeChips(document.getElementById('abl-chips'), ABLATIONS, T => renderTable(T, 'abl', 'abl-note'));
+
+const QUAL_ITEMS = [
+  {
+    label: 'Arti4D Axis Comparison',
+    src: 'assets/cmp_arti4d.png',
+    no: 'Figure 6.',
+    cap: 'Qualitative comparison of 3D joint axis estimation on Arti4D test videos. Blue shows ArtiPoint with RGB-D input and ground-truth poses, purple shows FAMOS on PhyVGGT point maps, orange shows RGB-only PhyVGGT, and green dashed lines denote ground truth. Arrows indicate prismatic joints and lines indicate revolute joints, with * marking wrong joint types.'
+  },
+  {
+    label: 'Parts & Unseen States',
+    src: 'assets/gallery.png',
+    no: 'Figure 7.',
+    cap: '3D part reconstructions and unseen articulation states on Arti4D test videos. The segmented movable part (teal) is driven by the predicted joint axis (orange) and hinge pivot (red) to the start and end of the observed motion and then to an unseen state via forward kinematics. Axis errors stay between 0.5° and 1.5°, and joints extrapolate cleanly to 1.5 times the observed motion range.'
+  },
+  {
+    label: 'More Arti4D',
+    src: 'assets/gallery_real2_arti4d_alt.png',
+    no: 'Figure 8.',
+    cap: 'Zero-shot qualitative results on real egocentric Arti4D test videos. All predictions are produced in a single 1.2 s forward pass from uncalibrated RGB frames.'
+  },
+  {
+    label: 'D3D-HOI',
+    src: 'assets/gallery_real2_d3dhoi.png',
+    no: 'Figure 9.',
+    cap: 'Zero-shot qualitative results on real third-person D3D-HOI test videos. Since D3D-HOI annotates 3D axis direction without depth, both predicted and ground-truth axes are rendered through the part centroid.'
+  },
+  {
+    label: 'PartNet-Mobility',
+    src: 'assets/gallery_syn2_alt.png',
+    no: 'Figure 10.',
+    cap: 'Qualitative results on PartNet-Mobility synthetic test videos. Colours denote predicted movable parts and static base across frames, solid orange lines and arrows denote predicted revolute and prismatic joints, green dashed lines denote ground truth, and numbers indicate axis angular errors.'
+  }
+];
+
+makeChips(document.getElementById('qual-chips'), QUAL_ITEMS, it => {
+  document.getElementById('qual-img').src = it.src;
+  document.getElementById('qual-cap').innerHTML = `<span class="fig-no">${esc(it.no)}</span> ${esc(it.cap)}`;
+});
+
+/* Reading position rail */
+(function () {
+  const nav = document.getElementById('pnav'), fillBar = document.getElementById('pnav-fill');
+  const secs = [...document.querySelectorAll('[data-nav]')].filter(s => s.id !== 'bibtex');
+  const links = secs.map(s => {
+    const a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.innerHTML = `<b></b><span>${esc(s.dataset.nav)}</span>`;
+    nav.append(a);
+    return a;
+  });
+  function update() {
+    const y = window.scrollY + window.innerHeight * .4;
+    const tops = secs.map(s => s.getBoundingClientRect().top + window.scrollY);
+    let cur = 0;
+    tops.forEach((t, i) => { if (y >= t) cur = i; });
+    const next = tops[cur + 1];
+    const frac = next ? Math.min(1, Math.max(0, (y - tops[cur]) / (next - tops[cur]))) : 0;
+    fillBar.style.height = ((secs.length > 1 ? (cur + frac) / (secs.length - 1) : 0) * 100) + '%';
+    links.forEach((a, i) => { a.classList.toggle('read', i < cur); a.classList.toggle('on', i === cur); });
+  }
+  let idle = 0;
+  window.addEventListener('scroll', () => { update(); nav.classList.add('active'); clearTimeout(idle); idle = setTimeout(() => nav.classList.remove('active'), 1200); }, {passive: true});
+  window.addEventListener('resize', update);
+  update();
+})();
+
+/* Top bar */
+(function () {
+  const bar = document.getElementById('topbar'), nav = document.getElementById('topnav'), hero = document.querySelector('.hero');
+  const secs = [...document.querySelectorAll('[data-nav]')].filter(s => s.id !== 'overview');
+  const links = secs.map(s => { const a = document.createElement('a'); a.href = '#' + s.id; a.textContent = s.dataset.nav; nav.append(a); return a; });
+  function update() {
+    bar.classList.toggle('show', hero.getBoundingClientRect().bottom < 0);
+    const y = window.innerHeight * .4; let cur = -1;
+    secs.forEach((s, i) => { if (s.getBoundingClientRect().top <= y) cur = i; });
+    links.forEach((a, i) => a.classList.toggle('on', i === cur));
+  }
+  window.addEventListener('scroll', update, {passive: true}); update();
+})();
+</script>
+</body>
+</html>
